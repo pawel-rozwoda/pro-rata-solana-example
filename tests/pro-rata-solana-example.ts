@@ -1,14 +1,53 @@
 import * as anchor from '@project-serum/anchor';
+const assert = require("assert");
 
 describe('pro-rata-solana-example', () => {
 
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.Provider.env());
+	const program = anchor.workspace.ProRataSolanaExample;
+  const provider = anchor.Provider.local();
 
-  it('Is initialized!', async () => {
-    // Add your test here.
-    const program = anchor.workspace.ProRataSolanaExample;
-    const tx = await program.rpc.initialize();
-    console.log("Your transaction signature", tx);
+  anchor.setProvider(provider);
+
+
+  it('initialize contract', async () => {
+
+    await program.state.rpc.new({
+      accounts: {
+        authority: provider.wallet.publicKey,
+      },
+    });
   });
+
+  it('deposition', async () => {
+
+		await program.state.rpc.deposit({
+			accounts: {
+				authority: provider.wallet.publicKey,
+			},
+		});
+		const state = await program.state.fetch();
+    
+		console.log(state.count)
+
+		await program.state.rpc.deposit({
+			accounts: {
+				authority: provider.wallet.publicKey,
+			},
+		});
+		const state2nd = await program.state.fetch();
+    
+		console.log(state2nd.count)
+  });
+
+  //it('2nd deposition', async () => {
+		//await program.state.rpc.deposit({
+			//accounts: {
+				//authority: provider.wallet.publicKey,
+			//},
+		//});
+		//const state = await program.state.fetch();
+    
+		//console.log(state.count)
+  //});
+
 });

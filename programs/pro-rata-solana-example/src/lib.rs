@@ -1,4 +1,6 @@
 use anchor_lang::prelude::*;
+use borsh::{BorshDeserialize, BorshSerialize};
+
 
 //#[program]
 //pub mod pro_rata_solana_example {
@@ -17,31 +19,48 @@ pub mod pro_rata_solana_example {
 
     #[state]
     pub struct Counter {
+        //pub v: Vec<Auth>,
         pub authority: Pubkey,
-        pub count: u64,
-        pub share: u64,
-        pub deposition: u64,
+        pub count: i64,
+        pub share: i64,
+        pub deposition: i64,
+        pub claims: [bool;5],
+        pub addresses: [i8; 5],
+        pub claim_available: bool,
+        pub share_to_claim: i64,
     }
 
     impl Counter {
         pub fn new(ctx: Context<Auth>) -> Result<Self> {
             Ok(Self {
+                claim_available: false,
+                claims: [false; 5],
+                addresses: [0,1,2,3,4],
                 authority: *ctx.accounts.authority.key,
                 count: 0,
                 share: 0,
-                deposition: 10,
+                deposition: 100,
+                share_to_claim: 0,
+
             })
         }
 
 
-        pub fn deposit(&mut self, ctx: Context<Auth>) -> Result<()> {
+        pub fn deposit(&mut self, ctx: Context<Auth>, data: u16) -> Result<()> {
             if &self.authority != ctx.accounts.authority.key {
                 return Err(ErrorCode::Unauthorized.into());
             }
+            self.claims[data as usize] = true;
             self.count += 1;
             self.share += self.deposition;
+            if self.count == 5 {
+                self.claim_available = true;
+                self.share += self.deposition;
+                self.share_to_claim = self.share / self.count;
+            }
             Ok(())
         }
+
 
         
     }
@@ -54,6 +73,7 @@ pub mod pro_rata_solana_example {
 pub struct Auth<'info> {
     #[account(signer)]
     authority: AccountInfo<'info>,
+    //addr: i32,
 }
 // #endregion code
 

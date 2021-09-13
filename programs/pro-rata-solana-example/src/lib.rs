@@ -2,17 +2,6 @@ use anchor_lang::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 
 
-//#[program]
-//pub mod pro_rata_solana_example {
-    //use super::*;
-    //pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
-        //Ok(())
-    //}
-//}
-
-//#[derive(Accounts)]
-//pub struct Initialize {}
-
 #[program]
 pub mod pro_rata_solana_example {
     use super::*;
@@ -61,8 +50,23 @@ pub mod pro_rata_solana_example {
             Ok(())
         }
 
+        pub fn claim(&mut self, ctx: Context<Auth>, data: u16) -> Result<()> {
+            if &self.authority != ctx.accounts.authority.key {
+                return Err(ErrorCode::Unauthorized.into());
+            }
+            
+            if self.claim_available == true && self.claims[data as usize] == true {
+                self.claims[data as usize] = false;
+                self.share -= self.share_to_claim;
+                Ok(())
+            }
+            else {
+                //todo
+                //result already_claimed
+                Ok(())
+            }
 
-        
+        }
     }
 
 }
